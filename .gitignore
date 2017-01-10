@@ -1,5 +1,7 @@
 /fonts
 /i386-pc
+/x86_64-efi
 /locale
-/themes
+/themes*
 /grubenv
+

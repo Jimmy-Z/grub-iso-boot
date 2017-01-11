@@ -8,15 +8,11 @@
 		1. build bootx64.efi:
 
 				grub-mkimage -o bootx64.efi -O x86_64-efi -p /boot/grub \
-					boot linux linux16 chain \
-					elf keylayouts minicmd extcmd normal configfile gzio cpio \
-					efi_gop efi_uga all_video gfxterm gettext font \
-					ls cat eval test cmp date datetime true time read \
-					memdisk cpuid lspci halt reboot sleep\
-					search search_fs_file search_fs_uuid search_label \
-					loopback regexp probe \
-					lvm msdospart part_msdos part_gpt \
-					ext2 fat exfat ntfs iso9660 udf btrfs
+					boot linux linux16 normal configfile \
+					part_gpt part_msdos fat iso9660 udf \
+					test keystatus loopback regexp probe \
+					efi_gop efi_uga all_video gfxterm font \
+					echo read help ls cat halt reboot
 
 		2. copy bootx64.efi to (USB)/efi/boot
 	- for BIOS systems: `grub-install --target=i386-pc --boot-directory=/mnt/usb/boot /dev/sdb`
@@ -38,7 +34,7 @@ assuming your USB drive is /dev/sdb and mounted on /mnt/usb
 * [Arch](https://www.archlinux.org/), and some derivatives like:
 	- [Antergos](http://antergos.com/)
 	- [Manjaro](https://manjaro.github.io/)
-* [Fedora](https://getfedora.org/), and it's server counterpart [CentOS Live](https://www.centos.org/)
+* [Fedora](https://getfedora.org/), and its server counterpart [CentOS Live](https://www.centos.org/)
 * ~~[openSUSE](https://www.opensuse.org/)~~, since Leap/42.1, openSUSE does not provide Live images anymore.
 * [PCLinuxOS](http://www.pclinuxos.com/)
 
@@ -55,9 +51,6 @@ So, if the initrd itself doesn't implement this mechanism, it won't work(hence t
 And in step 2, different distributions tends to use different parameter schemes,
 this is where this script kicks in:
 it tries to determine the image vendor and feeds appropriate parameters accordingly.
-
-This is not my idea, [super grub2 disk](http://www.supergrubdisk.org/super-grub2-disk/) does this too,
-but this script support more distributions.
 
 ### Comparing with other methods:
 

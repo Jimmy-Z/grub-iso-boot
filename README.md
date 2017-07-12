@@ -1,11 +1,12 @@
 # grub-iso-boot
 [GRUB](https://www.gnu.org/software/grub/) script to boot various Linux live CD/DVD images
 
-### usage:
+### Usage:
 
 1. Install GRUB(2, not legacy) on your target device, like an USB flash drive
-	- for UEFI/EFI x64 systems:
-		1. build bootx64.efi:
+	- For UEFI/EFI x64 systems:
+		1. Target device MUST be formatted as FAT32
+		2. Build bootx64.efi:
 
 				grub-mkimage -o bootx64.efi -O x86_64-efi -p /boot/grub \
 					boot linux linux16 normal configfile \
@@ -14,12 +15,15 @@
 					efi_gop efi_uga all_video gfxterm font \
 					echo read help ls cat halt reboot
 
-		2. copy bootx64.efi to (USB)/efi/boot
-	- for BIOS systems: `grub-install --target=i386-pc --boot-directory=/mnt/usb/boot /dev/sdb`
-assuming your USB drive is /dev/sdb and mounted on /mnt/usb
-2. Put this grub.cfg in (USB)/boot/grub/
-3. Put images files in (USB)/boot/iso/
-4. Change your BIOS settings to boot from this device
+		3. Copy `bootx64.efi` to `[USB]/efi/boot`
+	- For (Legacy) BIOS systems:
+
+			grub-install --target=i386-pc --boot-directory=/mnt/usb/boot /dev/sdb
+
+		assuming your USB drive is `/dev/sdb` and mounted on `/mnt/usb`
+2. Put this `grub.cfg` in `[USB]/boot/grub/`
+3. Put images files in `[USB]/boot/iso/`
+4. Change your UEFI/BIOS settings to boot from this device
 
 ### Currently supporting:
 
@@ -64,5 +68,5 @@ Using this script, once the initial setup is done, you can simply copy/delete th
 
 * Debian Installer, funny the live initrd supports loop mount but installer initrd doesn't.
 * Mageia, this is the only distribution that doesn't have loop mount in initrd on [distrowatch](http://distrowatch.com/) top 10 list.
-* LXLE, this is actually a lubuntu derivative, while lubuntu works like other Ubuntu derivatives, I guess there are some breakage while ... uh ... derivating?
+* LXLE, this is actually a lubuntu derivative, while lubuntu works like other Ubuntu derivatives.
 

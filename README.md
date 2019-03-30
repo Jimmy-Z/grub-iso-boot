@@ -1,45 +1,61 @@
-# grub-iso-boot
-[GRUB](https://www.gnu.org/software/grub/) script to boot various Linux live CD/DVD images
+## [GRUB](https://www.gnu.org/software/grub/) script to boot various Linux live CD/DVD images
 
 ### Usage:
 
-1. Install GRUB(2, not legacy) on your target device, like an USB flash drive
+0. Your target device, like a USB flash drive, should be formatted as FAT(32).
+	- That's because (most) UEFI/EFI supports only FAT(32),
+	if you target BIOS systems only, you can use ext4/btrfs/exFAT/NTFS, or whatever grub supports.
+1. Install GRUB(2, not legacy) on your target device:
 	- For UEFI/EFI x64 systems:
-		1. Target device MUST be formatted as FAT32
-		2. Build bootx64.efi:
-
-				grub-mkimage -o bootx64.efi -O x86_64-efi -p /boot/grub \
-					boot linux linux16 normal configfile \
-					part_gpt part_msdos fat iso9660 udf \
-					test keystatus loopback regexp probe \
-					efi_gop efi_uga all_video gfxterm font \
-					echo read help ls cat halt reboot
-
-		3. Copy `bootx64.efi` to `[USB]/efi/boot`
-	- For (Legacy) BIOS systems:
-
-			grub-install --target=i386-pc --boot-directory=/mnt/usb/boot /dev/sdb
-
-		assuming your USB drive is `/dev/sdb` and mounted on `/mnt/usb`
-2. Put this `grub.cfg` in `[USB]/boot/grub/`
-3. Put images files in `[USB]/boot/iso/`
-4. Change your UEFI/BIOS settings to boot from this device
+		1. Build `bootx64.efi`:
+			```
+			grub-mkimage -o bootx64.efi -O x86_64-efi -p /boot/grub \
+				boot linux linux16 normal configfile \
+				part_gpt part_msdos fat iso9660 udf \
+				test keystatus loopback regexp probe \
+				efi_gop efi_uga all_video gfxterm font \
+				echo read help ls cat halt reboot
+			```
+		2. Copy `bootx64.efi` to `(USB)/efi/boot`.
+	- For BIOS systems: `grub-install --target=i386-pc --boot-directory=/mnt/usb/boot /dev/sdb`
+	assuming your USB drive is `/dev/sdb` and mounted on `/mnt/usb`.
+	- You can install both.
+2. Put [`grub.cfg` from this repository](https://raw.githubusercontent.com/Jimmy-Z/grub-iso-boot/master/grub.cfg) in `(USB)/boot/grub/`.
+3. Put image files in `(USB)/boot/iso/`.
+4. Boot from this device, that depends of your system/motherboard vendor.
+	- On some modern PCs, you can press F12 to select from a list of boot devices during POST.
+	- Configure BIOS/EFI to boot from this device.
+	- [More detailed document from Debian](https://www.debian.org/releases/stable/amd64/ch03s06.html.en#boot-dev-select)
 
 ### Currently supporting:
 
-* [Debian Live](http://live.debian.net/), and some derivatives like:
-	- [GParted Live](http://gparted.org/livecd.php)
+* [Debian Live](https://www.debian.org/devel/debian-live/)
+	- [non-free images](https://cdimage.debian.org/cdimage/unofficial/non-free/images-including-firmware/current-live/)
+	are recommended for better hardware support, notably (wireless) network adapters.
+	- Debian Installer images like
+	[netinst image](https://www.debian.org/distrib/netinst)
+	or [CD/DVD image](https://www.debian.org/CD/)
+	are not supported, read the Extra section below.
+* And some Debian derivatives like:
 	- [Kali](https://www.kali.org/)
 	- [Grml](https://grml.org/)
-* [Ubuntu](http://www.ubuntu.com/), and some derivatives like:
+	- [GParted Live](http://gparted.org/livecd.php)
+	- [Clonezilla Live](https://clonezilla.org/clonezilla-live.php)
+* [Ubuntu](http://www.ubuntu.com/),
+* And some Ubuntu derivatives like:
 	- [lubuntu](http://lubuntu.net/)
 	- [Mint](http://www.linuxmint.com/)
 	- [elementary OS](https://elementary.io/)
-* [Arch](https://www.archlinux.org/), and some derivatives like:
-	- [Antergos](http://antergos.com/)
+* [Arch](https://www.archlinux.org/)
+* And some Arch derivatives like:
 	- [Manjaro](https://manjaro.github.io/)
-* [Fedora](https://getfedora.org/), and its server counterpart [CentOS Live](https://www.centos.org/)
-* ~~[openSUSE](https://www.opensuse.org/)~~, since Leap/42.1, openSUSE does not provide Live images anymore.
+	- [Antergos](http://antergos.com/)
+* [Fedora Live](https://getfedora.org/)
+	- Only tested on workstation live image.
+* [CentOS](https://www.centos.org/)
+	- Both the live and installer(like Minimal) images are supported.
+* [openSUSE](https://www.opensuse.org/)
+	- There is no live image, the installer image is supported though.
 * [PCLinuxOS](http://www.pclinuxos.com/)
 
 ### Some explanation:
@@ -58,15 +74,32 @@ it tries to determine the image vendor and feeds appropriate parameters accordin
 
 ### Comparing with other methods:
 
-Most Linux live images are hybrid FAT/ISO9660 so they can be written to a USB drive directly using dd and voila it's bootable, it's simpler if you want only one image, but destroys all data on the drive and the rest of the drive is not usable.
+The official way to make a bootable live USB drive suggested by most distributions is dd the image,
+those images are cleverly made FAT/ISO9660 hybrids so they work that way, depends on almost nothing,
+simpler to setup but also monogamy, destroys all data on the drive and the rest of the drive is not usable.
 
-There are tools to put multiple distributions on a single USB drive, but mostly they are Windows only and they extract the image contents to the USB drive so they are slower, and needs to run the tool every time you want to add/remove a image.
+There are tools to put multiple distributions on a single USB drive,
+but mostly they are Windows only and they extract the image contents to the USB drive so they are slower,
+and needs to run the tool every time you want to add/remove a image.
 
-Using this script, once the initial setup is done, you can simply copy/delete the image file, compatibility is not 100% but considerably usable.
+Using this script, once the initial setup is done, you can simply copy/delete the image file,
+compatibility is not 100% but considerably usable.
 
-### Notable unsupported:
+### Extra:
 
-* Debian Installer, funny the live initrd supports loop mount but installer initrd doesn't.
-* Mageia, this is the only distribution that doesn't have loop mount in initrd on [distrowatch](http://distrowatch.com/) top 10 list.
-* LXLE, this is actually a lubuntu derivative, while lubuntu works like other Ubuntu derivatives.
+* Debian Installer, initrd in the image doesn't support loop,
+but Debian provided an [alternative initrd](https://www.debian.org/releases/stable/amd64/ch04s02.html.en),
+copy `vmlinuz` and `initrd` from the `hd-media` directory 
+to `(USB)/boot/debian-installer/amd64`
+and your choice of installer image
+([like this](http://cdimage.debian.org/cdimage/unofficial/non-free/image-including-firmware/current/))
+to `(USB)/` (not `(USB)/boot/iso/`).
+	* Do not use live image.
+	* Do not mix arch, for example you should use amd64 image with amd64 kernel and initrd.
+	* Official document about this method is described
+	[here](https://www.debian.org/releases/stable/amd64/ch04s03.html.en#usb-copy-flexible).
+
+### Notable unsupported
+* Mageia, doesn't have loop mount in initrd.
+* LXLE, it is actually a lubuntu derivative, while lubuntu works like other Ubuntu derivatives, I guess there are some breakage while ... uh ... derivating?
 

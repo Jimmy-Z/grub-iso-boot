@@ -9,6 +9,7 @@ then
     echo "This script allows your drive to boot multiple Linux ISOs"
     echo "After running this script, add your ISOs to <DEVICE_MOUNTPOINT>/boot/iso"
     echo "The ISOs will then be detected when you boot from the drive"
+    echo "NOTE: This script deletes all partitions on the specified device. Triple check it before continuing"
     echo ""
     echo "Usage: $0 /dev/sdx"
     echo ""

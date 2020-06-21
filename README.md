@@ -6,26 +6,27 @@
 	- That's because (most) UEFI/EFI supports only FAT(32),
 	if you target BIOS systems only, you can use ext4/btrfs/exFAT/NTFS, or whatever grub supports.
 1. Install GRUB(2, not legacy) on your target device:
-	- For UEFI/EFI x64 systems:
+	(assuming your USB drive is `/dev/sdb` and mounted on `/mnt/usb/`.)
+	- For UEFI/EFI x64 systems: `grub-install --target=x86_64-efi --boot-directory=/mnt/usb/boot /dev/sdb`
+	- For BIOS systems: `grub-install --target=i386-pc --boot-directory=/mnt/usb/boot /dev/sdb`
+	- You can install both.
+	- Alternative way for UEFI/EFI x64 systems:
 		1. Build `bootx64.efi`:
 			```
 			grub-mkimage -o bootx64.efi -O x86_64-efi -p /boot/grub \
-				boot linux linux16 normal configfile \
+				boot linux linux16 chain normal configfile \
 				part_gpt part_msdos fat iso9660 udf \
-				test keystatus loopback regexp probe \
+				test true keystatus loopback regexp probe \
 				efi_gop efi_uga all_video gfxterm font \
 				echo read help ls cat halt reboot
 			```
-		2. Copy `bootx64.efi` to `(USB)/efi/boot`.
-	- For BIOS systems: `grub-install --target=i386-pc --boot-directory=/mnt/usb/boot /dev/sdb`
-	assuming your USB drive is `/dev/sdb` and mounted on `/mnt/usb`.
-	- You can install both.
+		2. Copy `bootx64.efi` to `(USB)/efi/boot/`.
 2. Put [`grub.cfg` from this repository](https://raw.githubusercontent.com/Jimmy-Z/grub-iso-boot/master/grub.cfg) in `(USB)/boot/grub/`.
 3. Put image files in `(USB)/boot/iso/`.
-4. Boot from this device, that depends of your system/motherboard vendor.
+4. Boot from this device, that depends on your system/motherboard vendor.
 	- On some modern PCs, you can press F12 to select from a list of boot devices during POST.
 	- Configure BIOS/EFI to boot from this device.
-	- [More detailed document from Debian](https://www.debian.org/releases/stable/amd64/ch03s06.html.en#boot-dev-select)
+	- [More detailed document from Debian](https://www.debian.org/releases/stable/amd64/ch03s06.en.html#boot-dev-select-x86).
 
 ### Currently supporting:
 
@@ -62,9 +63,10 @@
 
 GRUB is not able to do image boot on its own, the image boot procedure can be _loosely_ described like this:
 
-1. GRUB loop mount(the loopback command) the image, load the Linux kernel and initrd from it.
+1. GRUB loop mount the image, load the Linux kernel and initrd from it.
+	- the [loopback](https://www.gnu.org/software/grub/manual/grub/grub.html#loopback) command.
 2. GRUB boot the kernel, passing the initrd along with some parameters including the location of the image.
-3. Some script in initrd loop mount the image and continue the rest of boot procedure.
+3. Some script in initrd loop mount the image and continue the rest of the boot procedure.
 
 So, if the initrd itself doesn't implement this mechanism, it won't work(hence the unsupported section).
 
@@ -88,18 +90,22 @@ compatibility is not 100% but considerably usable.
 ### Extra:
 
 * Debian Installer, initrd in the image doesn't support loop,
-but Debian provided an [alternative initrd](https://www.debian.org/releases/stable/amd64/ch04s02.html.en),
-copy `vmlinuz` and `initrd` from the `hd-media` directory 
-to `(USB)/boot/debian-installer/amd64`
+but Debian provided an [alternative initrd](https://www.debian.org/releases/stable/amd64/ch04s02.en.html),
+copy `vmlinuz` and `initrd` from the `hd-media` directory
+to `(USB)/boot/debian-installer/amd64/`
 and your choice of installer image
 ([like this](http://cdimage.debian.org/cdimage/unofficial/non-free/image-including-firmware/current/))
 to `(USB)/` (not `(USB)/boot/iso/`).
-	* Do not use live image.
 	* Do not mix arch, for example you should use amd64 image with amd64 kernel and initrd.
-	* Official document about this method is described
-	[here](https://www.debian.org/releases/stable/amd64/ch04s03.html.en#usb-copy-flexible).
+	* Do not use live images.
+	* Official document about this method is
+	[here](https://www.debian.org/releases/stable/amd64/ch04s03.en.html#usb-copy-flexible).
+* EFI binary chainloading, simply copy to `(USB)/efi/*/bootx64.efi`, useful examples like:
+	* [UEFI shell](https://github.com/tianocore/edk2/releases/), get the `ShellBinPkg.zip`,
+		UEFI in most consumer boards doesn't come with shell, could be handy sometimes.
+	* [memtest86](https://www.memtest86.com/), you need to extract the disk image.
 
 ### Notable unsupported
+* Proxmox VE, it's based on Debian but the boot script is their own, too bad this is one of my favorite distributions.
 * Mageia, doesn't have loop mount in initrd.
-* LXLE, it is actually a lubuntu derivative, while lubuntu works like other Ubuntu derivatives, I guess there are some breakage while ... uh ... derivating?
-
+* LXLE, it is actually a lubuntu derivative, while lubuntu works like other Ubuntu derivatives, it doesn't, strangely.
